@@ -192,14 +192,28 @@ th,td{text-align:left;padding:9px 7px;border-bottom:1px solid #edf0ee;vertical-a
 th{color:#69766f}
 .footer-note{text-align:center;font-size:11px;color:#8c9892;padding:0 16px 86px}
 @media(max-width:470px){.app{margin:0;min-height:100vh;border-radius:0;border:none}.screen{min-height:calc(100vh - 74px)}}
+
+.demo-banner{background:#fff7e7;border-bottom:1px solid #f0dfb3;padding:8px 14px;font-size:11.5px;color:#72500c;text-align:center;font-weight:800}
+.role-badge{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:#eef3f0;color:#29513f;font-size:11px;font-weight:900}
+.order-card{border:1px solid #e2e9e5;border-radius:18px;padding:14px;background:#fff;margin:10px 0}
+.order-card.highlight{border-color:#2f7d5a;box-shadow:0 0 0 2px #eaf6ef inset}
+.role-tabs{display:flex;gap:7px;overflow:auto;margin:10px 0 14px;padding-bottom:3px}
+.role-tab{white-space:nowrap;padding:8px 10px;border-radius:999px;border:1px solid #dde5e0;background:white;font-size:11.5px;font-weight:800;cursor:pointer}
+.role-tab.active{background:#2f7d5a;color:white;border-color:#2f7d5a}
+.empty-state{padding:22px;text-align:center;border:1px dashed #d7e1dc;border-radius:16px;color:#77857f;background:#fafcfb}
+.route-placeholder{min-height:210px;border:1px dashed #cbd7d1;border-radius:18px;background:#f7faf8;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#65746d}
+.modal{position:absolute;inset:0;background:rgba(20,30,25,.45);display:none;align-items:center;justify-content:center;z-index:70;padding:18px}
+.modal.show{display:flex}.modal-card{background:#fff;border-radius:20px;padding:18px;width:100%;max-width:390px;max-height:80vh;overflow:auto}
+
 </style>
 </head>
 <body>
 <div class="app">
+<div class="demo-banner">Prototype Demo Mode • Local data only • No Firebase or real payments</div>
   <div class="topbar">
     <div class="brand" onclick="navTo('home')">Local<span>Link</span></div>
     <div class="top-actions">
-      <button class="icon-btn" onclick="openRoleSwitcher()" title="Demo dashboards">⚙️</button>
+      <span id="activeRoleBadge" class="role-badge">Customer Demo</span><button class="icon-btn" onclick="showScreen('settings')" title="Settings / Demo Roles">⚙️</button>
       <div id="profilePill" class="profile-pill">👤 <span id="profileName">Guest</span></div>
       <button id="signInTop" class="btn btn-secondary" style="width:auto;margin:0;padding:9px 11px;font-size:12px" onclick="showScreen('signin')">Sign in</button>
     </div>
@@ -324,18 +338,9 @@ th{color:#69766f}
 
   <!-- SIGN IN -->
   <section id="signin" class="screen">
-    <div class="label">Account</div>
-    <h2>Sign in to LocalLink</h2>
-    <p class="small">Prototype only. This stores your demo account in this browser—no real account is created.</p>
-    <div class="card">
-      <label class="small">Name</label>
-      <input id="signinName" placeholder="Your name"/>
-      <label class="small" style="display:block;margin-top:12px">Email</label>
-      <input id="signinEmail" type="email" placeholder="you@example.com"/>
-      <button class="btn btn-primary" onclick="mockSignIn()">Sign in</button>
-      <button class="btn btn-secondary" onclick="continueAsGuest()">Continue as guest</button>
-    </div>
-    <button class="btn btn-outline" onclick="navTo('home')">Back home</button>
+    <div class="label">Prototype Demo Mode</div><h2>Choose a demo account</h2><p class="small">These roles are for the class prototype only. Production access would use secure authentication.</p>
+    <div class="grid2"><div class="choice-card" onclick="loginDemoRole('customer')"><div class="emoji">🛍️</div><strong>Customer Demo</strong></div><div class="choice-card" onclick="loginDemoRole('vendor')"><div class="emoji">🏪</div><strong>Vendor Demo</strong></div><div class="choice-card" onclick="loginDemoRole('driver')"><div class="emoji">🚗</div><strong>Driver Demo</strong></div><div class="choice-card" onclick="loginDemoRole('admin')"><div class="emoji">🛠️</div><strong>Admin Demo</strong></div></div>
+    <div class="divider"></div><div class="card"><h3>Optional customer profile</h3><input id="signinName" placeholder="Your name"/><input id="signinEmail" type="email" placeholder="you@example.com"/><button class="btn btn-primary" onclick="mockSignIn()">Use custom customer profile</button><button class="btn btn-secondary" onclick="continueAsGuest()">Continue as guest</button></div><button class="btn btn-outline" onclick="navTo('home')">Back home</button>
   </section>
 
   <!-- FINDER -->
@@ -390,6 +395,17 @@ th{color:#69766f}
     <div id="rewardsContent"></div>
   </section>
 
+
+  <!-- SETTINGS -->
+  <section id="settings" class="screen">
+    <div class="label">Settings</div><h2>Prototype settings</h2>
+    <div class="card"><div class="row"><div><strong>Active demo role</strong><div id="settingsRoleText" class="small">Customer Demo</div></div><button class="btn btn-secondary" style="width:auto;margin:0" onclick="showScreen('signin')">Switch role</button></div></div>
+    <div class="card"><strong>Demo dashboards</strong><div class="grid2" style="margin-top:10px"><button class="btn btn-secondary" onclick="loginDemoRole('customer')">Customer Demo</button><button class="btn btn-secondary" onclick="loginDemoRole('vendor')">Vendor Demo</button><button class="btn btn-secondary" onclick="loginDemoRole('driver')">Driver Demo</button><button class="btn btn-secondary" onclick="loginDemoRole('admin')">Admin Demo</button></div></div>
+    <div class="card"><strong>Notifications</strong><div id="settingsNotifications" style="margin-top:10px"></div></div>
+    <div class="card"><strong>Development tools</strong><p class="small">Restore the original sample orders, delivery runs, rewards, notifications, and role state.</p><button class="btn btn-danger" onclick="confirmResetDemo()">Reset Demo Data</button></div>
+    <button class="btn btn-outline" onclick="navTo('home')">Back</button>
+  </section>
+
   <!-- ROLE SWITCHER -->
   <section id="roles" class="screen">
     <div class="label">Prototype dashboards</div>
@@ -402,77 +418,14 @@ th{color:#69766f}
   </section>
 
   <!-- VENDOR -->
-  <section id="vendorDash" class="screen">
-    <div class="label">Vendor dashboard • Demo</div>
-    <h2>Peak Roast Coffee</h2>
-    <div class="stat-grid">
-      <div class="stat"><strong>7</strong><span class="small">Orders</span></div>
-      <div class="stat"><strong>$186</strong><span class="small">Sales</span></div>
-      <div class="stat"><strong>4.8</strong><span class="small">Rating</span></div>
-    </div>
-    <div class="section-head"><h3>Store status</h3><span class="badge">Open</span></div>
-    <div class="card">
-      <label class="small">Business hours</label>
-      <input value="Saturday 9:00 AM – 2:00 PM"/>
-      <label class="small" style="display:block;margin-top:10px">Preparation time</label>
-      <select><option>15–20 minutes</option><option>20–30 minutes</option><option>30–45 minutes</option></select>
-      <button class="btn btn-secondary" onclick="toast('Vendor settings saved in this demo.')">Save changes</button>
-    </div>
-    <div class="section-head"><h3>Products</h3><button class="link-btn" onclick="toast('Add-product form would open here.')">+ Add product</button></div>
-    <div id="vendorProductList"></div>
-    <div class="section-head"><h3>Incoming orders</h3></div>
-    <div class="card">
-      <div class="row"><strong>#LL-1042</strong><span class="badge gold">Vendor reviewing</span></div>
-      <div class="small">2 items • $41.00 • Pickup</div>
-      <div class="grid2"><button class="btn btn-primary" onclick="toast('Order accepted.')">Accept</button><button class="btn btn-danger" onclick="toast('Order rejected in demo.')">Reject</button></div>
-    </div>
-    <button class="btn btn-outline" onclick="showScreen('roles')">Back</button>
-  </section>
+  <section id="vendorDash" class="screen"><div class="label">Vendor Dashboard • Prototype Demo</div><h2 id="vendorDashTitle">Peak Roast Coffee</h2><div class="stat-grid"><div class="stat"><strong id="vendorOrderCount">0</strong><span class="small">Orders</span></div><div class="stat"><strong id="vendorSales">$0</strong><span class="small">Sales</span></div><div class="stat"><strong id="vendorReadyCount">0</strong><span class="small">Ready</span></div></div><div class="section-head"><h3>Pickup settings</h3></div><div class="card"><label class="small">Vendor pickup location</label><input id="vendorPickupLocation"/><label class="small" style="display:block;margin-top:10px">Pickup instructions</label><input id="vendorPickupInstructions"/><button class="btn btn-secondary" onclick="saveVendorPickupInfo()">Save pickup info</button></div><div class="section-head"><h3>Orders</h3><span class="badge">Shared demo data</span></div><div id="vendorOrders"></div><div class="section-head"><h3>Products</h3></div><div id="vendorProductList"></div><button class="btn btn-outline" onclick="showScreen('settings')">Back to Settings</button></section>
 
   <!-- DRIVER -->
-  <section id="driverDash" class="screen">
-    <div class="label">Driver dashboard • Demo</div>
-    <h2>Assigned deliveries</h2>
-    <div class="card">
-      <div class="row"><strong>#LL-1039</strong><span class="badge">Assigned</span></div>
-      <p class="small">Pickup: Peak Roast Coffee<br/>Dropoff: Customer address hidden until assigned</p>
-      <div class="status-list">
-        <div class="status-step done">Assigned to driver</div>
-        <div class="status-step">Picked up from vendor</div>
-        <div class="status-step">Out for delivery</div>
-        <div class="status-step">Delivered</div>
-      </div>
-      <button class="btn btn-primary" onclick="advanceDriverStatus(this)">Advance delivery status</button>
-    </div>
-    <button class="btn btn-outline" onclick="showScreen('roles')">Back</button>
-  </section>
+  <section id="driverDash" class="screen"><div class="label">Driver Dashboard • Prototype Demo</div><h2>LocalLink Driver</h2><div class="role-tabs"><button class="role-tab active" data-driver-tab="schedule" onclick="setDriverTab('schedule')">Today’s Schedule</button><button class="role-tab" data-driver-tab="assigned" onclick="setDriverTab('assigned')">Assigned Deliveries</button><button class="role-tab" data-driver-tab="map" onclick="setDriverTab('map')">Route Map</button><button class="role-tab" data-driver-tab="completed" onclick="setDriverTab('completed')">Completed Deliveries</button><button class="role-tab" data-driver-tab="account" onclick="setDriverTab('account')">Account</button></div><div id="driverTabContent"></div><button class="btn btn-outline" onclick="showScreen('settings')">Back to Settings</button></section>
 
   <!-- ADMIN -->
-  <section id="adminDash" class="screen">
-    <div class="label">Admin dashboard • Demo</div>
-    <h2>Market overview</h2>
-    <div class="stat-grid">
-      <div class="stat"><strong>24</strong><span class="small">Vendors</span></div>
-      <div class="stat"><strong id="adminOrders">0</strong><span class="small">Orders</span></div>
-      <div class="stat"><strong id="adminSales">$0</strong><span class="small">Demo sales</span></div>
-    </div>
-    <div class="section-head"><h3>Delivery settings</h3></div>
-    <div class="card">
-      <label class="small">Max delivery radius (miles)</label><input id="adminRadius" type="number" value="30"/>
-      <label class="small" style="display:block;margin-top:10px">Base delivery fee</label><input id="adminDeliveryFee" type="number" value="5"/>
-      <label class="small" style="display:block;margin-top:10px">Per-mile fee</label><input id="adminPerMile" type="number" step=".25" value=".75"/>
-      <button class="btn btn-secondary" onclick="saveAdminSettings()">Save settings</button>
-    </div>
-    <div class="section-head"><h3>Rewards settings</h3></div>
-    <div class="card">
-      <label class="small">XP per $1 spent</label><input id="adminXpRate" type="number" value="1"/>
-      <button class="btn btn-secondary" onclick="saveAdminSettings()">Save rewards</button>
-    </div>
-    <div class="section-head"><h3>Vendors</h3></div>
-    <table><thead><tr><th>Vendor</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminVendorTable"></tbody></table>
-    <button class="btn btn-outline" onclick="showScreen('roles')">Back</button>
-  </section>
-
+  <section id="adminDash" class="screen"><div class="label">Admin Dashboard • Prototype Demo</div><h2>Delivery & order control</h2><div class="stat-grid"><div class="stat"><strong id="adminOrders">0</strong><span class="small">Orders</span></div><div class="stat"><strong id="adminUnassigned">0</strong><span class="small">Unassigned</span></div><div class="stat"><strong id="adminCompleted">0</strong><span class="small">Completed</span></div></div><div class="section-head"><h3>Delivery schedule</h3></div><div class="card"><div class="small"><strong>Tuesday:</strong> Provo/Orem area<br/><strong>Thursday:</strong> Provo/Orem area<br/><strong>Friday:</strong> Spanish Fork/Springville area<br/><br/>Service radius: 30 miles from Provo</div></div><div id="adminFilterTabs" class="role-tabs"></div><div id="adminOrderList"></div><div class="section-head"><h3>Delivery runs</h3></div><div id="adminDeliveryRuns"></div><div class="section-head"><h3>Delivery settings</h3></div><div class="card"><label class="small">Provo/Orem fee</label><input id="adminFeeProvo" type="number" step=".01"/><label class="small" style="display:block;margin-top:8px">Spanish Fork/Springville fee</label><input id="adminFeeSouth" type="number" step=".01"/><label class="small" style="display:block;margin-top:8px">Free-delivery threshold</label><input id="adminFreeThreshold" type="number"/><button class="btn btn-secondary" onclick="saveAdminDeliverySettings()">Save delivery settings</button></div><button class="btn btn-outline" onclick="showScreen('settings')">Back to Settings</button></section>
+  <div id="confirmModal" class="modal"><div class="modal-card" id="confirmModalCard"></div></div>
   <div id="toast" style="position:absolute;left:18px;right:18px;bottom:86px;background:#1f2933;color:#fff;padding:12px 14px;border-radius:13px;display:none;z-index:50;font-size:13px"></div>
 
   <nav id="bottomNav" class="bottom-nav show">
@@ -955,5 +908,63 @@ updateBagCount();
 renderHome();
 renderDiscover();
 </script>
+
+<script>
+const DELIVERY_STORE_KEY='locallinkDeliveryPrototype_v8';
+const DELIVERY_STATUSES=['New','Vendor Reviewing','Accepted','Preparing','Ready for Pickup','Assigned to Delivery','Driver Picking Up','Picked Up','Out for Delivery','Delivered','Delivery Completed','Ready for Customer Pickup','Picked Up by Customer','Cancelled','Refunded'];
+function llClone(x){return JSON.parse(JSON.stringify(x))}
+function llNow(){return new Date().toISOString()}
+function seedDeliveryData(){
+  const vendorDefaults={peak:['Provo Farmers Market • Booth A12','Use the east entrance and ask for the LocalLink pickup shelf.'],cookie:['Provo Farmers Market • Booth D02','Pickup at the front counter.'],river:['Provo Farmers Market • Booth D10','Bakery pickup counter.'],summit:['Provo Farmers Market • Booth H05','Prepared orders are in the labeled cooler.'],berry:['Provo Farmers Market • Booth C09','Ask for the prepared LocalLink order.']};
+  return {version:8,activeRole:'customer',activeUserId:'cust-demo',guest:false,customer:{id:'cust-demo',name:'Customer Demo',email:'customer@demo.local',phone:'801-555-0134',defaultAddress:'155 N University Ave, Provo, UT 84601',xp:145,freeDeliveryCredits:1},driver:{id:'driver-1',name:'Jordan Driver',phone:'801-555-0198'},admin:{id:'admin-1',name:'Alex Admin'},vendorId:'peak',vendorPickupInfo:vendorDefaults,settings:{maxMiles:30,zoneFees:{'Provo/Orem':5.99,'Spanish Fork/Springville':7.99},freeDeliveryThreshold:60,xpRate:1},orders:[
+    {id:'LL-2001',customerId:'cust-demo',customerName:'Customer Demo',customerPhone:'801-555-0134',items:[{productId:'coffee1',qty:1,vendorId:'peak'},{productId:'cookies1',qty:1,vendorId:'cookie'}],subtotal:39,serviceFee:1.50,deliveryFee:5.99,total:46.49,method:'delivery',paymentState:'Prototype Paid',status:'Assigned to Delivery',createdAt:llNow(),updatedAt:llNow(),deliveryAddress:'155 N University Ave, Provo, UT 84601',deliveryZone:'Provo/Orem',deliveryDate:'2026-10-06',deliveryWindow:'2:00–4:00 p.m.',deliveryRunId:'RUN-1001',assignedDriverId:'driver-1',customerNotes:'Leave at front desk if unavailable.',readyTime:'1:30 p.m.',completionTime:null,xpAwarded:false},
+    {id:'LL-2002',customerId:'cust-demo',customerName:'Customer Demo',customerPhone:'801-555-0134',items:[{productId:'bread1',qty:2,vendorId:'river'}],subtotal:18,serviceFee:1.50,deliveryFee:0,total:19.50,method:'pickup',paymentState:'Prototype Paid',status:'Ready for Customer Pickup',createdAt:llNow(),updatedAt:llNow(),pickupTime:'Saturday 12:00 PM',deliveryRunId:null,assignedDriverId:null,readyTime:'11:30 a.m.',completionTime:null,xpAwarded:false},
+    {id:'LL-2003',customerId:'cust-demo',customerName:'Customer Demo',customerPhone:'801-555-0134',items:[{productId:'meal1',qty:1,vendorId:'summit'}],subtotal:34,serviceFee:1.50,deliveryFee:7.99,total:43.49,method:'delivery',paymentState:'Prototype Paid',status:'Preparing',createdAt:llNow(),updatedAt:llNow(),deliveryAddress:'1200 N Main St, Springville, UT 84663',deliveryZone:'Spanish Fork/Springville',deliveryDate:null,deliveryWindow:null,deliveryRunId:null,assignedDriverId:null,customerNotes:'Call on arrival.',readyTime:'3:00 p.m.',completionTime:null,xpAwarded:false},
+    {id:'LL-2004',customerId:'cust-demo',customerName:'Customer Demo',customerPhone:'801-555-0134',items:[{productId:'honey1',qty:1,vendorId:'berry'}],subtotal:18,serviceFee:1.50,deliveryFee:5.99,total:25.49,method:'delivery',paymentState:'Prototype Paid',status:'Delivery Completed',createdAt:llNow(),updatedAt:llNow(),deliveryAddress:'450 W Center St, Orem, UT 84057',deliveryZone:'Provo/Orem',deliveryDate:'2026-10-01',deliveryWindow:'2:00–4:00 p.m.',deliveryRunId:'RUN-1000',assignedDriverId:'driver-1',customerNotes:'',readyTime:'1:15 p.m.',completionTime:'2026-10-01T16:02:00-06:00',xpAwarded:true}
+  ],deliveryRuns:[{deliveryRunId:'RUN-1000',deliveryDate:'2026-10-01',deliveryZone:'Provo/Orem',deliveryWindow:'2:00–4:00 p.m.',driverId:'driver-1',assignedOrderIds:['LL-2004'],routeStatus:'Completed',routeOrder:['LL-2004'],createdByAdmin:'admin-1',createdAt:llNow()},{deliveryRunId:'RUN-1001',deliveryDate:'2026-10-06',deliveryZone:'Provo/Orem',deliveryWindow:'2:00–4:00 p.m.',driverId:'driver-1',assignedOrderIds:['LL-2001'],routeStatus:'Scheduled',routeOrder:['LL-2001'],createdByAdmin:'admin-1',createdAt:llNow()}],notifications:[{id:'N1',role:'customer',userId:'cust-demo',message:'Order LL-2001 was added to Tuesday Provo/Orem delivery.',createdAt:llNow()},{id:'N2',role:'admin',userId:'admin-1',message:'Delivery LL-2004 was completed.',createdAt:llNow()}],xpTransactions:[{id:'XP1',orderId:'LL-2004',amount:18,reason:'Completed order',createdAt:'2026-10-01T16:02:00-06:00'}],adminFilter:'All',driverTab:'schedule'}
+}
+let deliveryData=seedDeliveryData();
+function loadDeliveryData(){try{const d=JSON.parse(localStorage.getItem(DELIVERY_STORE_KEY)||'null');if(d&&d.version===8)deliveryData=d;else localStorage.setItem(DELIVERY_STORE_KEY,JSON.stringify(deliveryData));}catch(e){}}
+function saveDeliveryData(){try{localStorage.setItem(DELIVERY_STORE_KEY,JSON.stringify(deliveryData));}catch(e){}}
+function notifyRole(role,userId,message){deliveryData.notifications.unshift({id:'N'+Date.now()+Math.random().toString(16).slice(2),role,userId,message,createdAt:llNow()});saveDeliveryData()}
+function notifHtml(role,userId){const a=deliveryData.notifications.filter(n=>n.role===role&&(!n.userId||n.userId===userId));return a.length?a.slice(0,8).map(n=>`<div class="soft-card"><div class="small">${n.message}</div><div class="small">${new Date(n.createdAt).toLocaleString()}</div></div>`).join(''):'<div class="empty-state">No notifications yet.</div>'}
+function roleName(r){return({customer:'Customer Demo',vendor:'Vendor Demo',driver:'Driver Demo',admin:'Admin Demo'})[r]||'Customer Demo'}
+function loginDemoRole(r){deliveryData.activeRole=r;deliveryData.guest=false;saveDeliveryData();applyDemoRoleUI();if(r==='customer')navTo('home');if(r==='vendor')showScreen('vendorDash');if(r==='driver')showScreen('driverDash');if(r==='admin')showScreen('adminDash');toast(roleName(r)+' active.')}
+function applyDemoRoleUI(){const b=document.getElementById('activeRoleBadge');if(b)b.textContent=roleName(deliveryData.activeRole);const s=document.getElementById('settingsRoleText');if(s)s.textContent=roleName(deliveryData.activeRole);const p=document.getElementById('profileName');if(p)p.textContent=deliveryData.activeRole==='customer'?deliveryData.customer.name:deliveryData.activeRole==='driver'?deliveryData.driver.name:deliveryData.activeRole==='admin'?deliveryData.admin.name:(vendors.find(v=>v.id===deliveryData.vendorId)?.name||'Vendor Demo')}
+function renderSettings(){document.getElementById('settingsRoleText').textContent=roleName(deliveryData.activeRole);document.getElementById('settingsNotifications').innerHTML=notifHtml(deliveryData.activeRole,deliveryData.activeRole==='customer'?'cust-demo':deliveryData.activeRole==='driver'?'driver-1':deliveryData.activeRole==='admin'?'admin-1':deliveryData.vendorId)}
+function confirmResetDemo(){openConfirmDemo('Reset Demo Data','Restore the original sample orders, delivery runs, notifications and rewards?','Reset',()=>{deliveryData=seedDeliveryData();localStorage.setItem(DELIVERY_STORE_KEY,JSON.stringify(deliveryData));state.orders=[];state.cart=[];state.xp=0;save();applyDemoRoleUI();updateBagCount();renderHome();renderSettings();navTo('home');toast('Demo data reset.')})}
+function openConfirmDemo(title,msg,label,fn){const m=document.getElementById('confirmModal');document.getElementById('confirmModalCard').innerHTML=`<h3>${title}</h3><p class="small">${msg}</p><div class="grid2"><button class="btn btn-outline" onclick="document.getElementById('confirmModal').classList.remove('show')">Cancel</button><button id="demoConfirmBtn" class="btn btn-primary">${label}</button></div>`;document.getElementById('demoConfirmBtn').onclick=()=>{m.classList.remove('show');fn()};m.classList.add('show')}
+function inferZoneDemo(a){a=(a||'').toLowerCase();return(a.includes('springville')||a.includes('spanish fork'))?'Spanish Fork/Springville':'Provo/Orem'}
+function deliveryFeeDemo(sub,zone,useCredit){if(sub>=deliveryData.settings.freeDeliveryThreshold)return 0;if(useCredit&&deliveryData.customer.freeDeliveryCredits>0)return 0;return deliveryData.settings.zoneFees[zone]||5.99}
+function demoOrderItems(o,vendorId){return o.items.filter(i=>!vendorId||i.vendorId===vendorId).map(i=>{const p=products.find(x=>x.id===i.productId);return `<div class="small">${i.qty}× ${p?p.name:i.productId} • ${money((p?p.price:0)*i.qty)}</div>`}).join('')}
+function addDemoOrderFromCart(){const subtotal=state.cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return s+(p?p.price*i.qty:0)},0),method=state.checkout.method,address=state.checkout.address||deliveryData.customer.defaultAddress,zone=inferZoneDemo(address),useCredit=!!state.checkout.useDeliveryCredit,deliveryFee=method==='delivery'?deliveryFeeDemo(subtotal,zone,useCredit):0,serviceFee=Math.max(1.5,subtotal*.03),id='LL-'+(2100+deliveryData.orders.length+1);const o={id,customerId:'cust-demo',customerName:deliveryData.customer.name,customerPhone:deliveryData.customer.phone,items:state.cart.map(i=>({productId:i.id,qty:i.qty,vendorId:products.find(p=>p.id===i.id).vendorId})),subtotal,serviceFee,deliveryFee,total:subtotal+serviceFee+deliveryFee,method,paymentState:'Prototype Paid',status:'New',createdAt:llNow(),updatedAt:llNow(),deliveryAddress:method==='delivery'?address:null,deliveryZone:method==='delivery'?zone:null,deliveryDate:null,deliveryWindow:null,deliveryRunId:null,assignedDriverId:null,pickupTime:method==='pickup'?state.checkout.pickupTime:null,customerNotes:'',readyTime:null,completionTime:null,xpAwarded:false};deliveryData.orders.unshift(o);state.cart=[];save();updateBagCount();notifyRole('customer','cust-demo',`Order ${id} was placed.`);[...new Set(o.items.map(i=>i.vendorId))].forEach(v=>notifyRole('vendor',v,`New order ${id} was received.`));saveDeliveryData();renderOrder(o);showScreen('order')}
+const originalRenderCheckout=renderCheckout;renderCheckout=function(){originalRenderCheckout();const box=document.getElementById('checkoutContent');if(!box)return;box.innerHTML=box.innerHTML.replace(/Create demo unpaid order/g,'Complete prototype checkout').replace(/onclick="createDemoOrder\(\)"/g,'onclick="addDemoOrderFromCart()"');if(state.checkout.method==='delivery'){const subtotal=bagTotals().subtotal,zone=inferZoneDemo(state.checkout.address||deliveryData.customer.defaultAddress),fee=deliveryFeeDemo(subtotal,zone,false);const cards=box.querySelectorAll('.soft-card');if(cards.length){cards[cards.length-1].insertAdjacentHTML('beforeend',`<div class="small" style="margin-top:7px">Zone fee: ${zone} ${money(fee)} • Free delivery at ${money(deliveryData.settings.freeDeliveryThreshold)}</div>`)}}}
+function saveVendorPickupInfo(){deliveryData.vendorPickupInfo[deliveryData.vendorId]=[document.getElementById('vendorPickupLocation').value,document.getElementById('vendorPickupInstructions').value];saveDeliveryData();toast('Vendor pickup info saved.')}
+function vendorOrders(){return deliveryData.orders.filter(o=>o.items.some(i=>i.vendorId===deliveryData.vendorId))}
+function vendorStatus(id,status){const o=deliveryData.orders.find(x=>x.id===id);if(!o)return;o.status=status;o.updatedAt=llNow();notifyRole('customer',o.customerId,`Order ${o.id} is now ${status}.`);saveDeliveryData();renderVendorDashboard()}
+function vendorReady(id){const o=deliveryData.orders.find(x=>x.id===id);if(!o)return;o.readyTime=document.getElementById('ready-'+id)?.value||'1:30 p.m.';o.status=o.method==='delivery'?'Ready for Pickup':'Ready for Customer Pickup';o.updatedAt=llNow();notifyRole('customer',o.customerId,o.method==='delivery'?`Order ${o.id} is ready for driver pickup.`:`Order ${o.id} is ready for customer pickup.`);notifyRole('admin','admin-1',`Order ${o.id} is ready.`);saveDeliveryData();renderVendorDashboard()}
+function renderVendorDashboard(){const v=vendors.find(x=>x.id===deliveryData.vendorId),orders=vendorOrders(),pi=deliveryData.vendorPickupInfo[deliveryData.vendorId]||['Provo Farmers Market','Ask for LocalLink pickup'];document.getElementById('vendorDashTitle').textContent=v.name;document.getElementById('vendorPickupLocation').value=pi[0];document.getElementById('vendorPickupInstructions').value=pi[1];document.getElementById('vendorOrderCount').textContent=orders.length;document.getElementById('vendorSales').textContent=money(orders.reduce((s,o)=>s+o.items.filter(i=>i.vendorId===v.id).reduce((a,i)=>a+(products.find(p=>p.id===i.productId)?.price||0)*i.qty,0),0));document.getElementById('vendorReadyCount').textContent=orders.filter(o=>['Ready for Pickup','Ready for Customer Pickup'].includes(o.status)).length;document.getElementById('vendorProductList').innerHTML=products.filter(p=>p.vendorId===v.id).map(p=>`<div class="card"><strong>${p.name}</strong><div class="small">${money(p.price)} • ${p.stock} in stock</div></div>`).join('');document.getElementById('vendorOrders').innerHTML=orders.length?orders.map(o=>`<div class="order-card"><div class="row"><strong>${o.id}</strong><span class="badge gold">${o.status}</span></div><div class="small">${o.customerName} • ${o.method}</div>${demoOrderItems(o,v.id)}<div class="small" style="margin-top:7px">Pickup: ${pi[0]}<br/>${pi[1]}</div><input id="ready-${o.id}" placeholder="Ready time" value="${o.readyTime||''}"/><div class="grid2"><button class="btn btn-secondary" onclick="vendorStatus('${o.id}','Preparing')">Mark Preparing</button><button class="btn btn-primary" onclick="vendorReady('${o.id}')">${o.method==='delivery'?'Ready for Driver Pickup':'Ready for Customer Pickup'}</button></div><button class="btn btn-outline" onclick="notifyRole('admin','admin-1','Inventory issue reported for ${o.id}');toast('Inventory issue sent to admin.')">Report inventory issue</button></div>`).join(''):'<div class="empty-state">No orders for this vendor.</div>'}
+function nextDate(day){const map={Tuesday:2,Thursday:4,Friday:5},d=new Date(),delta=(map[day]-d.getDay()+7)%7||7;d.setDate(d.getDate()+delta);return d.toISOString().slice(0,10)}
+function addToDelivery(id){const o=deliveryData.orders.find(x=>x.id===id);if(!o||o.method!=='delivery')return;const zone=o.deliveryZone||'Provo/Orem',day=zone==='Spanish Fork/Springville'?'Friday':'Tuesday';openConfirmDemo('Add to Delivery',`Assign ${id} to ${day} ${zone}?`,'Add to Delivery',()=>assignDelivery(id,day,zone))}
+function assignDelivery(id,day,zone){const o=deliveryData.orders.find(x=>x.id===id);if(!o)return;const date=nextDate(day),windowText='2:00–4:00 p.m.';let r=deliveryData.deliveryRuns.find(x=>x.deliveryDate===date&&x.deliveryZone===zone&&x.routeStatus!=='Completed');if(!r){r={deliveryRunId:'RUN-'+(1100+deliveryData.deliveryRuns.length+1),deliveryDate:date,deliveryZone:zone,deliveryWindow:windowText,driverId:'driver-1',assignedOrderIds:[],routeStatus:'Scheduled',routeOrder:[],createdByAdmin:'admin-1',createdAt:llNow()};deliveryData.deliveryRuns.push(r)}if(!r.assignedOrderIds.includes(id))r.assignedOrderIds.push(id);if(!r.routeOrder.includes(id))r.routeOrder.push(id);o.deliveryRunId=r.deliveryRunId;o.deliveryDate=date;o.deliveryWindow=windowText;o.assignedDriverId='driver-1';o.status='Assigned to Delivery';notifyRole('customer',o.customerId,`Order ${id} assigned to ${day} ${zone}.`);notifyRole('driver','driver-1',`Order ${id} assigned to your ${day} run.`);saveDeliveryData();renderAdminDashboard();toast('Order added to delivery run.')}
+function removeDelivery(id){const o=deliveryData.orders.find(x=>x.id===id);if(!o||!o.deliveryRunId)return;const r=deliveryData.deliveryRuns.find(x=>x.deliveryRunId===o.deliveryRunId);if(r){r.assignedOrderIds=r.assignedOrderIds.filter(x=>x!==id);r.routeOrder=r.routeOrder.filter(x=>x!==id)}o.deliveryRunId=null;o.deliveryDate=null;o.deliveryWindow=null;o.assignedDriverId=null;if(o.status==='Assigned to Delivery')o.status='Ready for Pickup';saveDeliveryData();renderAdminDashboard()}
+function filterAdmin(o,f){if(f==='All')return true;if(f==='New')return o.status==='New';if(f==='Vendor preparing')return ['Vendor Reviewing','Accepted','Preparing'].includes(o.status);if(f==='Ready for pickup')return ['Ready for Pickup','Ready for Customer Pickup'].includes(o.status);if(f==='Unassigned delivery')return o.method==='delivery'&&!o.deliveryRunId&&!['Delivery Completed','Cancelled','Refunded'].includes(o.status);if(f==='Assigned delivery')return o.method==='delivery'&&!!o.deliveryRunId&&!['Out for Delivery','Delivery Completed'].includes(o.status);if(f==='Out for delivery')return o.status==='Out for Delivery';if(f==='Completed')return ['Delivery Completed','Picked Up by Customer'].includes(o.status);if(f==='Pickup')return o.method==='pickup';return true}
+function adminCompletePickupDemo(id){const o=deliveryData.orders.find(x=>x.id===id);if(!o||o.method!=='pickup')return;o.status='Picked Up by Customer';o.completionTime=llNow();awardDemoXp(o);notifyRole('customer',o.customerId,`Pickup order ${o.id} is complete.`);notifyRole('admin','admin-1',`Pickup order ${o.id} completed.`);saveDeliveryData();renderAdminDashboard();toast('Pickup completed.')}
+function renderAdminDashboard(){const fs=['All','New','Vendor preparing','Ready for pickup','Unassigned delivery','Assigned delivery','Out for delivery','Completed','Pickup'];document.getElementById('adminOrders').textContent=deliveryData.orders.length;document.getElementById('adminUnassigned').textContent=deliveryData.orders.filter(o=>o.method==='delivery'&&!o.deliveryRunId&&!['Delivery Completed','Cancelled','Refunded'].includes(o.status)).length;document.getElementById('adminCompleted').textContent=deliveryData.orders.filter(o=>['Delivery Completed','Picked Up by Customer'].includes(o.status)).length;document.getElementById('adminFeeProvo').value=deliveryData.settings.zoneFees['Provo/Orem'];document.getElementById('adminFeeSouth').value=deliveryData.settings.zoneFees['Spanish Fork/Springville'];document.getElementById('adminFreeThreshold').value=deliveryData.settings.freeDeliveryThreshold;document.getElementById('adminFilterTabs').innerHTML=fs.map(f=>`<button class="role-tab ${deliveryData.adminFilter===f?'active':''}" onclick="deliveryData.adminFilter='${f}';saveDeliveryData();renderAdminDashboard()">${f}</button>`).join('');const list=deliveryData.orders.filter(o=>filterAdmin(o,deliveryData.adminFilter));document.getElementById('adminOrderList').innerHTML=list.length?list.map(o=>`<div class="order-card"><div class="row"><strong>${o.id}</strong><span class="badge gold">${o.status}</span></div><div class="small">${o.customerName} • ${o.method} • ${money(o.total)}</div>${demoOrderItems(o)}${o.method==='delivery'?`<div class="small" style="margin-top:7px">Zone: ${o.deliveryZone||'Unknown'}<br/>Address: ${o.deliveryAddress||'Unavailable'}<br/>Run: ${o.deliveryRunId||'Unassigned'}${o.deliveryDate?` • ${o.deliveryDate} ${o.deliveryWindow}`:''}</div><div class="grid2"><button class="btn btn-primary" onclick="assignDelivery('${o.id}','Tuesday','Provo/Orem')">Tue Provo/Orem</button><button class="btn btn-primary" onclick="assignDelivery('${o.id}','Thursday','Provo/Orem')">Thu Provo/Orem</button><button class="btn btn-primary" onclick="assignDelivery('${o.id}','Friday','Spanish Fork/Springville')">Fri South</button><button class="btn btn-secondary" ${!o.deliveryRunId?'disabled':''} onclick="removeDelivery('${o.id}')">Remove Assignment</button></div>`:`<div class="small" style="margin-top:7px">Pickup: ${o.pickupTime||'Not selected'}</div>`}</div>`).join(''):'<div class="empty-state">No orders in this filter.</div>';document.getElementById('adminDeliveryRuns').innerHTML=deliveryData.deliveryRuns.map(r=>`<div class="card"><div class="row"><strong>${r.deliveryRunId}</strong><span class="badge">${r.routeStatus}</span></div><div class="small">${r.deliveryDate} • ${r.deliveryZone} • ${r.deliveryWindow}<br/>Orders: ${r.assignedOrderIds.join(', ')||'None'}</div></div>`).join('')}
+function saveAdminDeliverySettings(){deliveryData.settings.zoneFees['Provo/Orem']=Number(document.getElementById('adminFeeProvo').value||5.99);deliveryData.settings.zoneFees['Spanish Fork/Springville']=Number(document.getElementById('adminFeeSouth').value||7.99);deliveryData.settings.freeDeliveryThreshold=Number(document.getElementById('adminFreeThreshold').value||60);saveDeliveryData();toast('Delivery settings saved.')}
+function setDriverTab(t){deliveryData.driverTab=t;saveDeliveryData();renderDriverDashboard()}
+function driverOrders(){return deliveryData.orders.filter(o=>o.assignedDriverId==='driver-1'&&o.method==='delivery'&&!['Delivery Completed','Cancelled','Refunded'].includes(o.status))}
+function completedDriverOrders(){return deliveryData.orders.filter(o=>o.assignedDriverId==='driver-1'&&o.status==='Delivery Completed')}
+function nextDriverStatus(o){if(o.status==='Assigned to Delivery')return o.readyTime?'Driver Picking Up':'Preparing';if(o.status==='Preparing')return 'Ready for Pickup';const f=['Ready for Pickup','Driver Picking Up','Picked Up','Out for Delivery','Delivered','Delivery Completed'],i=f.indexOf(o.status);return i>=0&&i<f.length-1?f[i+1]:null}
+function awardDemoXp(o){if(o.xpAwarded||['Cancelled','Refunded'].includes(o.status))return;const a=Math.floor(o.subtotal*(deliveryData.settings.xpRate||1));deliveryData.customer.xp+=a;o.xpAwarded=true;deliveryData.xpTransactions.unshift({id:'XP'+Date.now(),orderId:o.id,amount:a,reason:'Completed order',createdAt:llNow()})}
+function driverAdvance(id){const o=deliveryData.orders.find(x=>x.id===id);if(!o)return;const next=nextDriverStatus(o);if(!next)return;if(next==='Delivery Completed'){openConfirmDemo('Complete Delivery',`Confirm ${id} has been delivered?`,'Delivery Completed',()=>applyDriverStatus(o,next))}else applyDriverStatus(o,next)}
+function applyDriverStatus(o,s){if(o.status==='Delivery Completed')return;o.status=s;o.updatedAt=llNow();if(s==='Picked Up')notifyRole('customer',o.customerId,`Driver picked up ${o.id}.`);if(s==='Out for Delivery')notifyRole('customer',o.customerId,`${o.id} is out for delivery.`);if(s==='Delivery Completed'){o.completionTime=llNow();awardDemoXp(o);notifyRole('customer',o.customerId,`Delivery ${o.id} is complete. Thanks for supporting local businesses!`);notifyRole('admin','admin-1',`Driver completed delivery ${o.id}.`);const r=deliveryData.deliveryRuns.find(x=>x.deliveryRunId===o.deliveryRunId);if(r&&r.assignedOrderIds.every(id=>deliveryData.orders.find(x=>x.id===id)?.status==='Delivery Completed'))r.routeStatus='Completed'}notifyRole('admin','admin-1',`${o.id} changed to ${s}.`);saveDeliveryData();renderDriverDashboard();toast(`Order updated: ${s}`)}
+function renderDriverDashboard(){const tab=deliveryData.driverTab||'schedule';document.querySelectorAll('[data-driver-tab]').forEach(b=>b.classList.toggle('active',b.dataset.driverTab===tab));const box=document.getElementById('driverTabContent');if(tab==='schedule'){const runs=deliveryData.deliveryRuns.filter(r=>r.driverId==='driver-1'&&r.routeStatus!=='Completed');box.innerHTML=runs.length?runs.map(r=>`<div class="card"><div class="row"><strong>${r.deliveryDate}</strong><span class="badge">${r.deliveryZone}</span></div><div class="small">${r.deliveryWindow} • ${r.assignedOrderIds.length} deliveries</div></div>`).join(''):'<div class="empty-state">No scheduled runs.</div>'}else if(tab==='assigned'){const a=driverOrders();box.innerHTML=a.length?a.map((o,i)=>{const vi=o.items[0].vendorId,pi=deliveryData.vendorPickupInfo[vi]||['Provo Farmers Market','Ask vendor'];return `<div class="order-card highlight"><div class="row"><strong>${i+1}. ${o.id}</strong><span class="badge gold">${o.status}</span></div><div class="small">Date: ${o.deliveryDate||'Not scheduled'} • ${o.deliveryWindow||'No window'}<br/>Zone: ${o.deliveryZone}<br/>Vendor: ${vendors.find(v=>v.id===vi)?.name||vi}<br/>Pickup: ${pi[0]}<br/>Instructions: ${pi[1]}<br/>Ready time: ${o.readyTime||'Not ready yet'}<br/>Customer: ${o.customerName}<br/>Address: ${o.deliveryAddress}<br/>Phone: ${o.customerPhone||'Unavailable'}<br/>Notes: ${o.customerNotes||'None'}<br/>Route order: ${i+1}</div>${demoOrderItems(o)}<button class="btn btn-primary" onclick="driverAdvance('${o.id}')">Advance Status</button></div>`}).join(''):'<div class="empty-state">No assigned deliveries.</div>'}else if(tab==='map'){box.innerHTML='<div class="route-placeholder"><div><div style="font-size:38px">🗺️</div><strong>Route Map Placeholder</strong><p class="small">A future map integration would show vendor pickups and customer stops. This prototype uses route order and delivery windows instead.</p></div></div>'}else if(tab==='completed'){const a=completedDriverOrders();box.innerHTML=a.length?a.map(o=>`<div class="card"><strong>${o.id}</strong><div class="small">${o.deliveryAddress}<br/>Completed: ${o.completionTime?new Date(o.completionTime).toLocaleString():'Unavailable'}</div></div>`).join(''):'<div class="empty-state">No completed deliveries.</div>'}else{box.innerHTML=`<div class="card"><strong>${deliveryData.driver.name}</strong><p class="small">Prototype driver employee<br/>Phone: ${deliveryData.driver.phone}</p></div><div class="card"><strong>Notifications</strong>${notifHtml('driver','driver-1')}</div>`}}
+const oldShowScreen=showScreen;showScreen=function(id){const required={vendorDash:'vendor',driverDash:'driver',adminDash:'admin'}[id];if(required&&deliveryData.activeRole!==required){toast(`Switch to ${roleName(required)} to open this dashboard.`);oldShowScreen('settings');renderSettings();return}oldShowScreen(id);if(id==='settings')renderSettings();if(id==='vendorDash')renderVendorDashboard();if(id==='driverDash')renderDriverDashboard();if(id==='adminDash')renderAdminDashboard()}
+const oldNavTo=navTo;navTo=function(id){deliveryData.activeRole='customer';saveDeliveryData();applyDemoRoleUI();oldNavTo(id)}
+const oldRenderAccount=renderAccount;renderAccount=function(){oldRenderAccount();const box=document.getElementById('accountContent');if(box){const orders=deliveryData.orders.filter(o=>o.customerId==='cust-demo');box.insertAdjacentHTML('beforeend',`<div class="section-head"><h3>Shared delivery orders</h3></div>${orders.map(o=>`<div class="order-card"><div class="row"><strong>${o.id}</strong><span class="badge gold">${o.status}</span></div><div class="small">${o.method} • ${money(o.total)}${o.deliveryDate?` • ${o.deliveryDate} ${o.deliveryWindow}`:''}</div></div>`).join('')}<div class="section-head"><h3>Notifications</h3></div>${notifHtml('customer','cust-demo')}`)}}
+loadDeliveryData();applyDemoRoleUI();
+</script>
+
 </body>
 </html>
